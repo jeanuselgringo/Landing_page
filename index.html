@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portail RSK Benelux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --px: 4px;
+    --sky-top: #0b2a33;
+    --sky-bot: #134e5e;
+    --ink: #0a1a1f;
+    --paper: #f4f1e6;
+    --paper-shade: #d9d3bf;
+    --teal: #1f8a8a;
+    --teal-light: #5fd3c6;
+    --text: #0a1a1f;
+    --muted: #4b5a5e;
+    --title: #f4f1e6;
+    --sub: #9fd8d0;
+    --online: #3fd46b;
+    --star: #e8f6f3;
+    --hill-1: #1c6b5a;
+    --hill-2: #134a40;
+    --shadow: rgba(0, 0, 0, .45);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { min-height: 100%; background: var(--sky-bot); }
+  body {
+    background: linear-gradient(var(--sky-top), var(--sky-bot));
+    color: var(--text);
+    font-family: "VT323", ui-monospace, monospace;
+    font-size: 22px;
+    line-height: 1.15;
+    image-rendering: pixelated;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- starfield ---------- */
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star {
+    position: absolute; width: var(--px); height: var(--px);
+    background: var(--star); animation: twinkle 3s steps(2) infinite;
+  }
+  @keyframes twinkle { 50% { opacity: .2; } }
+
+  /* ---------- layout ---------- */
+  main {
+    position: relative; z-index: 2;
+    width: 100%; max-width: 920px;
+    margin: 0 auto; padding: 72px 16px 40px;
+    flex: 1;
+  }
+  header { margin-bottom: 48px; }
+  h1 {
+    font-family: "Press Start 2P", monospace;
+    font-size: clamp(18px, 4vw, 30px);
+    color: var(--title);
+    line-height: 1.4;
+    text-shadow: 4px 4px 0 var(--ink), 4px 0 0 var(--ink), 0 4px 0 var(--ink);
+    letter-spacing: 1px;
+  }
+  h1 .accent { color: var(--teal-light); }
+  .subtitle {
+    margin-top: 16px;
+    font-size: 26px;
+    color: var(--sub);
+  }
+  .cursor {
+    display: inline-block; width: 12px; height: 20px;
+    background: var(--sub); vertical-align: -3px; margin-left: 4px;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- cards ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 36px;
+  }
+  .card {
+    position: relative;
+    display: flex; flex-direction: column;
+    background: var(--paper);
+    color: var(--text);
+    text-decoration: none;
+    padding: 20px 20px 18px;
+    margin: 4px;
+    /* notched pixel border + stepped drop shadow */
+    box-shadow:
+      0 -4px 0 0 var(--ink),
+      0  4px 0 0 var(--ink),
+      -4px 0 0 0 var(--ink),
+      4px  0 0 0 var(--ink),
+      inset -4px -4px 0 0 var(--paper-shade),
+      8px 8px 0 0 var(--shadow),
+      4px 12px 0 0 var(--shadow),
+      12px 4px 0 0 var(--shadow);
+    transition: transform .08s steps(2);
+  }
+  .card:hover, .card:focus-visible, .card.selected {
+    transform: translate(-4px, -4px);
+    outline: none;
+    box-shadow:
+      0 -4px 0 0 var(--ink),
+      0  4px 0 0 var(--ink),
+      -4px 0 0 0 var(--ink),
+      4px  0 0 0 var(--ink),
+      inset -4px -4px 0 0 var(--paper-shade),
+      inset 0 0 0 4px var(--teal-light),
+      12px 12px 0 0 var(--shadow),
+      8px 16px 0 0 var(--shadow),
+      16px 8px 0 0 var(--shadow);
+  }
+  .card:active { transform: translate(2px, 2px); }
+
+  .pointer {
+    position: absolute; left: -28px; top: 26px;
+    font-family: "Press Start 2P", monospace; font-size: 16px;
+    color: var(--title); opacity: 0;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+  .card.selected .pointer, .card:hover .pointer { opacity: 1; animation: nudge .6s steps(2) infinite; }
+  @keyframes nudge { 50% { transform: translateX(4px); } }
+
+  .card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .sprite { width: 48px; height: 48px; flex: none; }
+  .sprite svg { width: 100%; height: 100%; display: block; shape-rendering: crispEdges; }
+  .card-head { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+  .card-title {
+    font-family: "Press Start 2P", monospace;
+    font-size: 13px; line-height: 1.3;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Press Start 2P", monospace; font-size: 7px;
+    color: var(--ink); background: #c9f3d6;
+    padding: 5px 6px 4px;
+    box-shadow: 0 -2px 0 0 var(--ink), 0 2px 0 0 var(--ink), -2px 0 0 0 var(--ink), 2px 0 0 0 var(--ink);
+    white-space: nowrap;
+  }
+  .badge i {
+    width: 6px; height: 6px; background: var(--online);
+    box-shadow: 0 0 0 1px var(--ink);
+    animation: blink 1.4s steps(1) infinite;
+  }
+  .desc { color: var(--muted); font-size: 22px; flex: 1; }
+  .path {
+    margin-top: 14px;
+    font-family: "Press Start 2P", monospace; font-size: 9px;
+    color: var(--teal);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .path .go { color: var(--ink); }
+
+  .hint {
+    margin-top: 40px; text-align: center;
+    font-family: "Press Start 2P", monospace; font-size: 9px;
+    color: var(--sub); line-height: 2;
+  }
+  .hint kbd {
+    font-family: inherit; background: var(--paper); color: var(--ink);
+    padding: 2px 5px; margin: 0 2px;
+    box-shadow: 0 2px 0 0 var(--ink), 0 -2px 0 0 var(--ink), 2px 0 0 0 var(--ink), -2px 0 0 0 var(--ink);
+  }
+
+  /* ---------- ground ---------- */
+  .ground { position: relative; z-index: 1; width: 100%; height: 120px; margin-top: 24px; }
+  .ground svg { width: 100%; height: 100%; display: block; shape-rendering: crispEdges; }
+  footer {
+    position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2;
+    text-align: center;
+    font-family: "Press Start 2P", monospace; font-size: 9px;
+    color: var(--paper);
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+
+  @media (max-width: 560px) {
+    main { padding-top: 48px; }
+    .pointer { display: none; }
+    .hint .keys { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="stars" id="stars" aria-hidden="true"></div>
+
+  <main>
+    <header>
+      <h1>Portail <span class="accent">RSK</span> Benelux</h1>
+      <p class="subtitle">Sélectionnez un outil<span class="cursor" aria-hidden="true"></span></p>
+    </header>
+
+    <nav class="grid" id="tools" aria-label="Outils">
+      <a class="card" href="/matlist/" data-sprite="clipboard">
+        <span class="pointer" aria-hidden="true">▶</span>
+        <div class="card-top">
+          <div class="sprite" aria-hidden="true"></div>
+          <div class="card-head">
+            <h2 class="card-title">MATList</h2>
+            <span class="badge"><i></i>EN LIGNE</span>
+          </div>
+        </div>
+        <p class="desc">Inventaires amiante — consultation des campagnes de terrain.</p>
+        <p class="path"><span>/matlist/</span><span class="go">GO ►</span></p>
+      </a>
+
+      <a class="card" href="/terrabase/" data-sprite="drill">
+        <span class="pointer" aria-hidden="true">▶</span>
+        <div class="card-top">
+          <div class="sprite" aria-hidden="true"></div>
+          <div class="card-head">
+            <h2 class="card-title">Terrabase</h2>
+            <span class="badge"><i></i>EN LIGNE</span>
+          </div>
+        </div>
+        <p class="desc">Extraction TerraBase ciblée → base SQLite + export Excel « drilling ».</p>
+        <p class="path"><span>/terrabase/</span><span class="go">GO ►</span></p>
+      </a>
+
+      <a class="card" href="/soundtool/" data-sprite="speaker">
+        <span class="pointer" aria-hidden="true">▶</span>
+        <div class="card-top">
+          <div class="sprite" aria-hidden="true"></div>
+          <div class="card-head">
+            <h2 class="card-title">Soundtool</h2>
+            <span class="badge"><i></i>EN LIGNE</span>
+          </div>
+        </div>
+        <p class="desc">Analyse sonométrique LAeq — moyennes horaires, exclusion d'événements.</p>
+        <p class="path"><span>/soundtool/</span><span class="go">GO ►</span></p>
+      </a>
+    </nav>
+
+    <p class="hint"><span class="keys"><kbd>◄</kbd><kbd>►</kbd> choisir · <kbd>ENTRÉE</kbd> lancer</span></p>
+  </main>
+
+  <div class="ground" aria-hidden="true">
+    <svg id="ground" preserveAspectRatio="none"></svg>
+    <footer>rskbenelux-app.be</footer>
+  </div>
+
+<script>
+(function () {
+  // ---------- pixel sprites ----------
+  var palette = {
+    k: "#0a1a1f", w: "#ffffff", b: "#a0673a", s: "#b8c4c8", g: "#2fbf5a",
+    y: "#f2c230", m: "#8a9aa0", o: "#8b5a2b", d: "#5e3a1a", r: "#9aa4a8",
+    t: "#1f8a8a", l: "#5fd3c6"
+  };
+  var sprites = {
+    clipboard: [
+      "...kkkkkk...",
+      "..kssssssk..",
+      ".kbkkkkkkbk.",
+      ".kbwwwwwwbk.",
+      ".kbwgwkkwbk.",
+      ".kbwwwwwwbk.",
+      ".kbwgwkkwbk.",
+      ".kbwwwwwwbk.",
+      ".kbwgwkkwbk.",
+      ".kbwwwwwwbk.",
+      ".kbbbbbbbbk.",
+      "..kkkkkkkk.."
+    ],
+    drill: [
+      "....kkkk....",
+      "....kyyk....",
+      "...kyyyyk...",
+      "...kykkyk...",
+      "..kkkmmkkk..",
+      "gggggmmggggg",
+      "gggggmmggggg",
+      "ooooommooooo",
+      "odoodmmoodoo",
+      "ooooommooooo",
+      "ddrddmmddrdd",
+      "dddddkkddddd"
+    ],
+    speaker: [
+      "............",
+      ".....k...l..",
+      "....kk....l.",
+      "...kmk.t..l.",
+      "kkkmmk..t.l.",
+      "kmmmmk..t.l.",
+      "kmmmmk..t.l.",
+      "kkkmmk..t.l.",
+      "...kmk.t..l.",
+      "....kk....l.",
+      ".....k...l..",
+      "............"
+    ]
+  };
+  function spriteSVG(rows) {
+    var h = rows.length, w = rows[0].length, out = "";
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var c = rows[y][x];
+      if (palette[c]) out += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + palette[c] + '"/>';
+    }
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">' + out + '</svg>';
+  }
+  document.querySelectorAll(".card").forEach(function (card) {
+    card.querySelector(".sprite").innerHTML = spriteSVG(sprites[card.dataset.sprite]);
+  });
+
+  // ---------- stars ----------
+  var stars = document.getElementById("stars");
+  for (var i = 0; i < 70; i++) {
+    var s = document.createElement("span");
+    s.className = "star";
+    s.style.left = (Math.random() * 100).toFixed(2) + "%";
+    s.style.top = (Math.random() * 75).toFixed(2) + "%";
+    s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+    if (Math.random() < .15) { s.style.width = s.style.height = "8px"; s.style.opacity = ".8"; }
+    stars.appendChild(s);
+  }
+
+  // ---------- stepped pixel hills ----------
+  var g = document.getElementById("ground");
+  var W = 160, H = 30, svg = "";
+  g.setAttribute("viewBox", "0 0 " + W + " " + H);
+  function hill(base, amp, freq, phase, color) {
+    for (var x = 0; x < W; x++) {
+      var top = Math.round(base - amp * (Math.sin(x * freq + phase) * .6 + Math.sin(x * freq * 2.3 + phase) * .4));
+      svg += '<rect x="' + x + '" y="' + top + '" width="1" height="' + (H - top) + '" fill="' + color + '"/>';
+    }
+  }
+  hill(14, 5, .07, 1, "var(--hill-1)");
+  hill(22, 3, .11, 3, "var(--hill-2)");
+  g.innerHTML = svg;
+
+  // ---------- keyboard selection ----------
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+  var idx = -1;
+  function select(n) {
+    idx = (n + cards.length) % cards.length;
+    cards.forEach(function (c, j) { c.classList.toggle("selected", j === idx); });
+    cards[idx].focus();
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); select(idx + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); select(idx - 1); }
+  });
+  cards.forEach(function (c, j) {
+    c.addEventListener("mouseenter", function () { idx = j; cards.forEach(function (o) { o.classList.remove("selected"); }); });
+  });
+})();
+</script>
+</body>
+</html>
