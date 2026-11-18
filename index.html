@@ -174,7 +174,7 @@
   /* ---------- ground ---------- */
   .ground { position: relative; z-index: 1; width: 100%; height: 120px; margin-top: 24px; }
   .ground svg { display: block; shape-rendering: crispEdges; }
-  .ground .layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ground .layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .prop { position: absolute; transform: translateX(-50%); }
   .rig { width: 176px; height: 160px; left: 74%; }
   .turbine { width: 30px; height: 48px; opacity: .75; }
@@ -183,9 +183,53 @@
   .blades { transform-box: fill-box; transform-origin: 50% 50%; animation: spin 1.2s steps(4) infinite; }
   .t2 .blades { animation-duration: 1.6s; }
   @keyframes spin { to { transform: rotate(120deg); } }
-  .rig .head { animation: drill .5s steps(2) infinite; }
-  @keyframes drill { 50% { transform: translateY(1px); } }
-  footer {
+  .rig { cursor: pointer; pointer-events: auto; }
+  .rig .head { animation: drill 3s steps(6) infinite; }
+  @keyframes drill { 50% { transform: translateY(5px); } }
+  .rig .dirt rect { opacity: 0; animation: dirt 3s steps(3) infinite; }
+  .rig .dirt rect:nth-child(2) { animation-delay: .1s; }
+  .rig .dirt rect:nth-child(3) { animation-delay: .2s; }
+  @keyframes dirt { 0%, 40% { opacity: 0; transform: translate(0, 0); }
+    50% { opacity: 1; transform: translate(0, -2px); } 65%, 100% { opacity: 0; transform: translate(0, 1px); } }
+  .rig .smoke rect { opacity: 0; animation: smoke 2.4s steps(6) infinite; }
+  .rig .smoke rect:nth-child(2) { animation-delay: .8s; }
+  .rig .smoke rect:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes smoke { 0% { opacity: .9; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(3px, -9px); } }
+  .rig.boost .head { animation-duration: .5s; }
+  .rig.boost .dirt rect { animation-duration: .5s; }
+  .rig.boost .smoke rect { animation-duration: .6s; }
+  .rig.boost { animation: shake .1s steps(2) infinite; }
+  @keyframes shake { 50% { margin-left: 2px; } }
+
+  /* shooting star */
+  .shoot {
+    position: fixed; z-index: 0; top: 8%; left: -10%;
+    width: 24px; height: 4px; pointer-events: none;
+    background: linear-gradient(90deg, transparent 0 33%, rgba(232,246,243,.5) 33% 66%, var(--star) 66%);
+    animation: shoot 11s steps(24) infinite; animation-delay: 3s; opacity: 0;
+  }
+  @keyframes shoot {
+    0% { opacity: 1; transform: translate(0, 0) rotate(20deg); }
+    8% { opacity: 1; transform: translate(60vw, 22vh) rotate(20deg); }
+    8.1%, 100% { opacity: 0; transform: translate(60vw, 22vh) rotate(20deg); }
+  }
+
+  /* hover bounce on sprites */
+  .card:hover .sprite, .card.selected .sprite { animation: hop .5s steps(2) infinite; }
+  @keyframes hop { 50% { transform: translateY(-4px); } }
+
+  /* sound toggle */
+  .sound-btn {
+    position: fixed; top: 16px; right: 16px; z-index: 5;
+    font-family: "Press Start 2P", monospace; font-size: 9px;
+    background: var(--paper); color: var(--ink); border: 0; cursor: pointer;
+    padding: 8px 10px 7px;
+    box-shadow: 0 -4px 0 0 var(--ink), 0 4px 0 0 var(--ink), -4px 0 0 0 var(--ink), 4px 0 0 0 var(--ink), 6px 6px 0 2px var(--shadow);
+  }
+  .sound-btn:hover, .sound-btn:focus-visible { background: #c9f3d6; outline: none; }
+  .sound-btn:active { transform: translate(2px, 2px); }
+  .sound-btn[aria-pressed="true"] .state { color: #138a3a; }
+  footer { pointer-events: none;
     position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2;
     text-align: center;
     font-family: "Press Start 2P", monospace; font-size: 9px;
@@ -207,6 +251,8 @@
 </head>
 <body>
   <div class="stars" id="stars" aria-hidden="true"></div>
+  <div class="shoot" aria-hidden="true"></div>
+  <button class="sound-btn" id="sound" type="button" aria-pressed="false">♪ SON <span class="state">OFF</span></button>
 
   <main>
     <header>
@@ -262,7 +308,7 @@
     <svg class="layer" id="hill-back" preserveAspectRatio="none"></svg>
     <svg class="prop turbine t1" viewBox="0 0 15 24"></svg>
     <svg class="prop turbine t2" viewBox="0 0 15 24"></svg>
-    <svg class="prop rig" id="rig" viewBox="0 0 44 40"></svg>
+    <svg class="prop rig" id="rig" viewBox="0 0 44 40"><title>Clique-moi !</title></svg>
     <svg class="layer" id="hill-front" preserveAspectRatio="none"></svg>
     <footer>rskbenelux-app.be</footer>
   </div>
@@ -392,7 +438,11 @@
     // operator 2 (white hard hat, at the controls)
     + R(11, 26, 3, 1, "#f4f1e6") + R(10, 27, 5, 1, "#f4f1e6") + R(11, 28, 3, 2, "#5a3a22")
     + R(10, 30, 5, 4, "#d8dde0") + R(15, 31, 1, 1, "#e0b08a") + R(11, 34, 1, 4, "#2c4a7a") + R(13, 34, 1, 4, "#2c4a7a");
-  document.getElementById("rig").innerHTML = rig;
+  rig += R(36, 20, 1, 3, K)
+    + '<g class="smoke">' + R(35, 18, 2, 2, "#c7d0d3") + R(36, 18, 2, 2, "#aeb8bb") + R(35, 18, 2, 2, "#c7d0d3") + '</g>'
+    + '<g class="dirt">' + R(17, 32, 1, 1, "#8b5a2b") + R(22, 31, 1, 1, "#5e3a1a") + R(15, 31, 1, 1, "#8b5a2b") + '</g>';
+  var rigEl = document.getElementById("rig");
+  rigEl.insertAdjacentHTML("beforeend", rig);
 
   // ---------- wind turbines ----------
   var blade = R(7, 0, 1, 6, "#e8f0f0");
@@ -422,6 +472,65 @@
   seat();
   window.addEventListener("resize", seat);
 
+  // ---------- 8-bit sound (Web Audio, no files) ----------
+  var actx = null, soundOn = false;
+  try { soundOn = localStorage.getItem("rsk-sound") === "1"; } catch (e) {}
+  function audio() {
+    if (!actx) { var C = window.AudioContext || window.webkitAudioContext; if (!C) return null; actx = new C(); }
+    if (actx.state === "suspended") actx.resume();
+    return actx;
+  }
+  function tone(freq, at, dur, type, vol) {
+    var a = audio(); if (!a) return;
+    var t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+    o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol || .05, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur + .02);
+  }
+  function drillNoise(dur) {
+    var a = audio(); if (!a) return;
+    var n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (Math.floor(i / (a.sampleRate / 14)) % 2 ? 1 : .35);
+    var src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
+    src.buffer = buf; f.type = "lowpass"; f.frequency.value = 500;
+    g.gain.setValueAtTime(.18, t); g.gain.linearRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t);
+    tone(55, 0, dur, "square", .04);
+  }
+  var sfx = {
+    hover: function () { tone(880, 0, .05); },
+    move: function () { tone(660, 0, .04); tone(990, .04, .05); },
+    start: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * .06, .1); }); },
+    on: function () { tone(440, 0, .06); tone(880, .07, .08); },
+    drill: function () { drillNoise(1.6); }
+  };
+  function play(name) { if (soundOn) sfx[name](); }
+
+  var soundBtn = document.getElementById("sound");
+  function renderSound() {
+    soundBtn.setAttribute("aria-pressed", soundOn ? "true" : "false");
+    soundBtn.querySelector(".state").textContent = soundOn ? "ON" : "OFF";
+  }
+  renderSound();
+  soundBtn.addEventListener("click", function () {
+    soundOn = !soundOn;
+    try { localStorage.setItem("rsk-sound", soundOn ? "1" : "0"); } catch (e) {}
+    renderSound();
+    play("on");
+  });
+
+  // click the rig: it drills harder for a moment
+  var boostTimer;
+  rigEl.addEventListener("click", function () {
+    rigEl.classList.add("boost");
+    play("drill");
+    clearTimeout(boostTimer);
+    boostTimer = setTimeout(function () { rigEl.classList.remove("boost"); }, 1600);
+  });
+
   // ---------- keyboard selection ----------
   var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
   var idx = -1;
@@ -431,11 +540,17 @@
     cards[idx].focus();
   }
   document.addEventListener("keydown", function (e) {
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); select(idx + 1); }
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); select(idx - 1); }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); select(idx + 1); play("move"); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); select(idx - 1); play("move"); }
   });
   cards.forEach(function (c, j) {
-    c.addEventListener("mouseenter", function () { idx = j; cards.forEach(function (o) { o.classList.remove("selected"); }); });
+    c.addEventListener("mouseenter", function () { idx = j; cards.forEach(function (o) { o.classList.remove("selected"); }); play("hover"); });
+    c.addEventListener("click", function (e) {
+      if (!soundOn || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      play("start");
+      setTimeout(function () { location.href = c.href; }, 280);
+    });
   });
 })();
 </script>
